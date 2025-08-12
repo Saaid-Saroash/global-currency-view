@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
+import { useToast } from "@/components/ui/use-toast";
 import ChartTabs from "@/components/exchange/ChartTabs";
 
 const formatPKR = (value: number) =>
@@ -37,6 +41,11 @@ const Exchange = () => {
   const [name, setName] = useState("");
   const [currency, setCurrency] = useState<"PKR" | "USD" | "EUR">("PKR");
   const balancePKR = 52000;
+
+  type ModalKey = 'spot'|'futures'|'margin'|'convert'|'deposit'|'withdraw'|'p2p'|'earn'|'security';
+  const [modal, setModal] = useState<ModalKey | null>(null);
+  const [leverage, setLeverage] = useState<number>(5);
+  const { toast } = useToast();
 
   useEffect(() => {
     const stored = localStorage.getItem("user_name") || "";
@@ -151,6 +160,235 @@ const Exchange = () => {
               </CardContent>
             </Card>
           </div>
+
+          <section id="actions" className="mt-10">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Quick Actions</h2>
+            </div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader><CardTitle>Trading</CardTitle></CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setModal('spot')}>Spot</Button>
+                  <Button size="sm" onClick={() => setModal('futures')}>Futures</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Options", description: "Options trading simulated in this demo." })}>Options</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Margin", description: "Margin trading simulated in this demo." })}>Margin</Button>
+                  <Button size="sm" variant="outline" onClick={() => setModal('convert')}>Convert</Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader><CardTitle>Funding</CardTitle></CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setModal('deposit')}>Deposit</Button>
+                  <Button size="sm" onClick={() => setModal('withdraw')}>Withdraw</Button>
+                  <Button size="sm" onClick={() => setModal('p2p')}>P2P</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Card Purchase", description: "Card purchases are simulated in this demo." })}>Card</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Crypto Deposit", description: "Use your wallet to transfer crypto (demo)." })}>Crypto Deposit</Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader><CardTitle>Earn & Services</CardTitle></CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={() => setModal('earn')}>Earn</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "BNB Discount", description: "BNB fee discount applied (demo)." })}>BNB Discount</Button>
+                  <Button size="sm" variant="outline" onClick={() => setModal('security')}>Security</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Binance Pay", description: "Payments are simulated in this demo." })}>Pay</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "NFT Marketplace", description: "NFT marketplace is simulated in this demo." })}>NFT</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Gift Cards", description: "Gift cards are simulated in this demo." })}>Gift Cards</Button>
+                  <Button size="sm" variant="secondary" onClick={() => toast({ title: "Academy", description: "Opening educational resources (demo)." })}>Academy</Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Dialog open={!!modal} onOpenChange={(open) => { if (!open) setModal(null); }}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    {modal === 'spot' && 'Place Spot Order'}
+                    {modal === 'futures' && 'Place Futures Order'}
+                    {modal === 'convert' && 'Convert Crypto'}
+                    {modal === 'deposit' && 'Deposit Funds'}
+                    {modal === 'withdraw' && 'Withdraw Funds'}
+                    {modal === 'p2p' && 'P2P Trading'}
+                    {modal === 'earn' && 'Earn: Stake'}
+                    {modal === 'security' && 'Security Settings'}
+                  </DialogTitle>
+                  <DialogDescription>Demo only — no real trading.</DialogDescription>
+                </DialogHeader>
+
+                {modal === 'spot' && (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const d = new FormData(e.currentTarget as HTMLFormElement);
+                      toast({ title: 'Spot order placed', description: `${d.get('pair')} • Amount ${d.get('amount')}` });
+                      setModal(null);
+                    }}
+                  >
+                    <div>
+                      <Label htmlFor="pair">Pair</Label>
+                      <Input id="pair" name="pair" defaultValue="BTC/USDT" />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount">Amount</Label>
+                      <Input id="amount" name="amount" type="number" placeholder="100" />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Place Order</Button>
+                    </DialogFooter>
+                  </form>
+                )}
+
+                {modal === 'futures' && (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const d = new FormData(e.currentTarget as HTMLFormElement);
+                      toast({ title: 'Futures order placed', description: `${d.get('pair')} • ${leverage}x • Amount ${d.get('amount')}` });
+                      setModal(null);
+                    }}
+                  >
+                    <div>
+                      <Label htmlFor="pair_f">Pair</Label>
+                      <Input id="pair_f" name="pair" defaultValue="BTC/USDT" />
+                    </div>
+                    <div>
+                      <Label>Leverage: {leverage}x</Label>
+                      <Slider value={[leverage]} min={1} max={20} step={1} onValueChange={(v) => setLeverage(v[0])} />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount_f">Amount</Label>
+                      <Input id="amount_f" name="amount" type="number" placeholder="100" />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Place Order</Button>
+                    </DialogFooter>
+                  </form>
+                )}
+
+                {modal === 'convert' && (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const d = new FormData(e.currentTarget as HTMLFormElement);
+                      toast({ title: 'Converted', description: `${d.get('from')} -> ${d.get('to')} • Amount ${d.get('amount')}` });
+                      setModal(null);
+                    }}
+                  >
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="from">From</Label>
+                        <Input id="from" name="from" defaultValue="BTC" />
+                      </div>
+                      <div>
+                        <Label htmlFor="to">To</Label>
+                        <Input id="to" name="to" defaultValue="USDT" />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="amount_c">Amount</Label>
+                      <Input id="amount_c" name="amount" type="number" placeholder="1.5" />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Convert</Button>
+                    </DialogFooter>
+                  </form>
+                )}
+
+                {modal === 'deposit' && (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const d = new FormData(e.currentTarget as HTMLFormElement);
+                      toast({ title: 'Deposit initiated', description: `${d.get('method')} • Amount ${d.get('amount')}` });
+                      setModal(null);
+                    }}
+                  >
+                    <div>
+                      <Label htmlFor="method_d">Method</Label>
+                      <Input id="method_d" name="method" placeholder="Bank, Card, Crypto, P2P" />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount_d">Amount</Label>
+                      <Input id="amount_d" name="amount" type="number" placeholder="1000" />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Deposit</Button>
+                    </DialogFooter>
+                  </form>
+                )}
+
+                {modal === 'withdraw' && (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const d = new FormData(e.currentTarget as HTMLFormElement);
+                      toast({ title: 'Withdraw request', description: `To ${d.get('method')} • Amount ${d.get('amount')}` });
+                      setModal(null);
+                    }}
+                  >
+                    <div>
+                      <Label htmlFor="method_w">To</Label>
+                      <Input id="method_w" name="method" placeholder="Bank, Wallet" />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount_w">Amount</Label>
+                      <Input id="amount_w" name="amount" type="number" placeholder="1000" />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Withdraw</Button>
+                    </DialogFooter>
+                  </form>
+                )}
+
+                {modal === 'p2p' && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">Find P2P offers using local methods (Easypaisa, JazzCash, Bank).</p>
+                    <DialogFooter>
+                      <Button onClick={() => { toast({ title: 'P2P', description: 'Showing P2P offers (demo).' }); setModal(null); }}>Find Offers</Button>
+                    </DialogFooter>
+                  </div>
+                )}
+
+                {modal === 'earn' && (
+                  <form
+                    className="space-y-4"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const d = new FormData(e.currentTarget as HTMLFormElement);
+                      toast({ title: 'Staked (demo)', description: `${d.get('asset')} • Amount ${d.get('amount')}` });
+                      setModal(null);
+                    }}
+                  >
+                    <div>
+                      <Label htmlFor="asset_e">Asset</Label>
+                      <Input id="asset_e" name="asset" defaultValue="USDT" />
+                    </div>
+                    <div>
+                      <Label htmlFor="amount_e">Amount</Label>
+                      <Input id="amount_e" name="amount" type="number" placeholder="500" />
+                    </div>
+                    <DialogFooter>
+                      <Button type="submit">Stake</Button>
+                    </DialogFooter>
+                  </form>
+                )}
+
+                {modal === 'security' && (
+                  <div className="space-y-3">
+                    <Button onClick={() => toast({ title: '2FA Enabled (demo)' })}>Enable 2FA</Button>
+                    <Button variant="secondary" onClick={() => toast({ title: 'Withdrawal whitelist setup (demo)' })}>Setup Withdrawal Whitelist</Button>
+                    <Button variant="outline" onClick={() => toast({ title: 'Anti-phishing code set (demo)' })}>Set Anti-Phishing Code</Button>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </section>
 
           <section id="trading" className="mt-10">
             <div className="flex items-center justify-between">
