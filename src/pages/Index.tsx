@@ -1,6 +1,6 @@
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import Hero, { KeyFacts, ProsCons, ComparisonTable } from "@/components/landing/Hero";
-
 const Index = () => {
   const title = "Forex (Foreign Exchange Market) — Simple Guide";
   const description = "Learn Forex basics: how currency pairs work, who trades, key risks, and why it’s the world’s largest 24/5 market.";
@@ -61,7 +61,13 @@ const Index = () => {
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
 
-      <main>
+        <header className="border-b">
+          <nav className="container mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/" className="font-semibold">Forex Guide</a>
+            <Link to="/app" className="underline hover:no-underline">Open Crypto App</Link>
+          </nav>
+        </header>
+        <main>
         <Hero />
         <KeyFacts />
         <ProsCons />
